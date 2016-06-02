@@ -417,6 +417,9 @@ module Rubydoop
       end
 
       class Sequence < Jobs
+        def submit
+        end
+
         def wait_for_completion(verbose)
           @jobs.all? do |job|
             job.wait_for_completion(verbose)
@@ -425,12 +428,16 @@ module Rubydoop
       end
 
       class Parallel < Jobs
+        def submit
+        end
+
         def wait_for_completion(verbose)
+          @jobs.each do |job|
+            job.submit
+          end
           @jobs.map do |job|
-            Thread.new do
-              job.wait_for_completion(verbose)
-            end
-          end.map!(&:value).all?
+            job.wait_for_completion(verbose)
+          end.all?
         end
       end
     end

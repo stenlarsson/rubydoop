@@ -51,6 +51,7 @@ module Rubydoop
 
         before do
           jobs.each_with_index do |job, index|
+            allow(job).to receive(:submit)
             allow(job).to receive(:wait_for_completion).and_return(true)
             allow(job_factory).to receive(:create).with(anything, "job#{index}").and_return(job)
           end
@@ -109,15 +110,10 @@ module Rubydoop
           end
 
           it 'delegates the jobs in parallel' do
-            latch = Java::JavaUtilConcurrent::CountDownLatch.new(3)
             jobs.each do |job|
-              allow(job).to receive(:wait_for_completion) do
-                latch.count_down
-                latch.await
-              end
+              expect(job).to receive(:submit)
             end
             definition.wait_for_completion(true)
-            expect(latch.count).to eq 0
           end
 
           it 'returns true when all jobs return true' do
